@@ -100,6 +100,7 @@
       }
 
       .chart-item {
+        display: block;
         padding: 16px;
         margin: 6px 0;
         background: #0f1419;
@@ -107,12 +108,18 @@
         border: 1px solid #2d3548;
         transition: all 0.2s ease;
         cursor: pointer;
+        text-decoration: none;
+        color: inherit;
       }
 
       .chart-item:hover {
         background: #1e2433;
         border-color: #f97316;
         transform: translateX(5px);
+      }
+
+      .chart-item:visited {
+        color: inherit;
       }
 
       .chart-category {
@@ -382,9 +389,9 @@
         chartList.innerHTML = filteredCharts
           .map(
             (chart) => `
-                 <div class="chart-item" onclick="window.open('${
+                 <a href="${
                    chart.chart_url
-                 }', '_blank')">
+                 }" class="chart-item" target="_blank" rel="noopener noreferrer">
                      <div>
                          <span class="chart-parent">${chart.parent}</span>
                      </div>
@@ -393,7 +400,7 @@
                        query
                      )}</div>
                      <div class="chart-url">${chart.chart_url}</div>
-                 </div>
+                 </a>
              `
           )
           .join("");
