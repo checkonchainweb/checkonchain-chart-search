@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CheckOnChain Chart Search</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: #0a0e1a;
+        min-height: 100vh;
+        padding: 20px;
+        color: #e0e0e0;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      header {
+        text-align: center;
+        color: white;
+        margin-bottom: 40px;
+        padding-top: 20px;
+      }
+
+      .logo {
+        height: 40px;
+        margin-bottom: 20px;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        color: #ffffff;
+        font-weight: 600;
+      }
+
+      .subtitle {
+        font-size: 1.1rem;
+        color: #9ca3af;
+      }
+
+      .search-box {
+        background: #1a1f2e;
+        border: 1px solid #2d3548;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      .search-input {
+        width: 100%;
+        padding: 15px 20px;
+        font-size: 1.1rem;
+        background: #0f1419;
+        border: 1px solid #2d3548;
+        border-radius: 8px;
+        color: #ffffff;
+        transition: all 0.3s ease;
+      }
+
+      .search-input::placeholder {
+        color: #6b7280;
+      }
+
+      .search-input:focus {
+        outline: none;
+        border-color: #f97316;
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+      }
+
+      .stats {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #2d3548;
+        color: #9ca3af;
+        font-size: 0.9rem;
+      }
+
+      .chart-list {
+        background: #1a1f2e;
+        border: 1px solid #2d3548;
+        border-radius: 12px;
+        padding: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        max-height: 70vh;
+        overflow-y: auto;
+      }
+
+      .chart-item {
+        padding: 16px;
+        margin: 6px 0;
+        background: #0f1419;
+        border-radius: 8px;
+        border: 1px solid #2d3548;
+        transition: all 0.2s ease;
+        cursor: pointer;
+      }
+
+      .chart-item:hover {
+        background: #1e2433;
+        border-color: #f97316;
+        transform: translateX(5px);
+      }
+
+      .chart-category {
+        display: inline-block;
+        background: #374151;
+        color: #d1d5db;
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        margin-right: 8px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .chart-parent {
+        display: inline-block;
+        background: #f97316;
+        color: #ffffff;
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      .chart-title {
+        font-size: 1.1rem;
+        color: #ffffff;
+        margin: 10px 0 6px 0;
+        font-weight: 500;
+        line-height: 1.4;
+      }
+
+      .chart-url {
+        font-size: 0.8rem;
+        color: #6b7280;
+        word-break: break-all;
+        font-family: "Courier New", monospace;
+      }
+
+      .no-results {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6b7280;
+      }
+
+      .no-results-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 60px 20px;
+        color: #9ca3af;
+        font-size: 1.2rem;
+      }
+
+      .highlight {
+        background-color: #f97316;
+        color: #ffffff;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-weight: 600;
+      }
+
+      /* Custom scrollbar */
+      .chart-list::-webkit-scrollbar {
+        width: 10px;
+      }
+
+      .chart-list::-webkit-scrollbar-track {
+        background: #0f1419;
+        border-radius: 10px;
+      }
+
+      .chart-list::-webkit-scrollbar-thumb {
+        background: #f97316;
+        border-radius: 10px;
+      }
+
+      .chart-list::-webkit-scrollbar-thumb:hover {
+        background: #ea580c;
+      }
+
+      @media (max-width: 768px) {
+        h1 {
+          font-size: 1.8rem;
+        }
+
+        .subtitle {
+          font-size: 0.9rem;
+        }
+
+        .stats {
+          flex-direction: column;
+          gap: 5px;
+        }
+
+        body {
+          padding: 10px;
+        }
+
+        .chart-item {
+          padding: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <img
+          src="https://checkonchain-production.vercel.app/_next/static/media/coc_logo_white.55fa1506.svg"
+          alt="CheckOnChain Logo"
+          class="logo"
+        />
+        <h1>Chart Search</h1>
+        <p class="subtitle">
+          Search and explore 500+ Bitcoin on-chain analytics charts
+        </p>
+      </header>
+
+      <div class="search-box">
+        <input
+          type="text"
+          id="searchInput"
+          class="search-input"
+          placeholder="🔍 Search chart titles, categories, or keywords..."
+          autocomplete="off"
+        />
+        <div class="stats">
+          <span id="resultCount">Loading charts...</span>
+          <span id="totalCount"></span>
+        </div>
+      </div>
+
+      <div class="chart-list" id="chartList">
+        <div class="loading">Loading charts... ⏳</div>
+      </div>
+    </div>
+
+    <script>
+      let allCharts = [];
+      let filteredCharts = [];
+
+      // Load and parse CSV
+      async function loadCharts() {
+        try {
+          const response = await fetch("checkonchain_charts_with_titles.csv");
+          const csvText = await response.text();
+
+          // Parse CSV
+          const lines = csvText.split("\n");
+          const headers = lines[0].split(",");
+
+          allCharts = lines
+            .slice(1)
+            .filter((line) => line.trim().length > 0)
+            .map((line) => {
+              // Handle CSV with potential commas in fields
+              const values = parseCSVLine(line);
+              return {
+                category: values[0] || "",
+                parent: values[1] || "",
+                chart_name: values[2] || "",
+                chart_url: values[3] || "",
+              };
+            });
+
+          filteredCharts = [...allCharts];
+          updateStats();
+          renderCharts();
+        } catch (error) {
+          document.getElementById("chartList").innerHTML = `
+                    <div class="no-results">
+                        <div class="no-results-icon">⚠️</div>
+                        <p>Error loading charts: ${error.message}</p>
+                        <p style="margin-top: 10px;">Make sure 'checkonchain_charts_with_titles.csv' is in the same folder as this HTML file.</p>
+                    </div>
+                `;
+        }
+      }
+
+      // Parse CSV line handling commas within quoted fields
+      function parseCSVLine(line) {
+        const result = [];
+        let current = "";
+        let inQuotes = false;
+
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === "," && !inQuotes) {
+            result.push(current.trim());
+            current = "";
+          } else {
+            current += char;
+          }
+        }
+        result.push(current.trim());
+
+        return result;
+      }
+
+      // Search functionality
+      function searchCharts(query) {
+        const searchTerms = query.toLowerCase().trim();
+
+        if (!searchTerms) {
+          filteredCharts = [...allCharts];
+        } else {
+          filteredCharts = allCharts.filter((chart) => {
+            return (
+              chart.chart_name.toLowerCase().includes(searchTerms) ||
+              chart.category.toLowerCase().includes(searchTerms) ||
+              chart.parent.toLowerCase().includes(searchTerms)
+            );
+          });
+        }
+
+        updateStats();
+        renderCharts();
+      }
+
+      // Highlight search terms
+      function highlightText(text, query) {
+        if (!query) return text;
+
+        const regex = new RegExp(`(${query})`, "gi");
+        return text.replace(regex, '<span class="highlight">$1</span>');
+      }
+
+      // Update statistics
+      function updateStats() {
+        const resultCount = document.getElementById("resultCount");
+        const totalCount = document.getElementById("totalCount");
+
+        if (filteredCharts.length === allCharts.length) {
+          resultCount.textContent = `Showing all ${allCharts.length} charts`;
+        } else {
+          resultCount.textContent = `Found ${filteredCharts.length} matching charts`;
+        }
+
+        const categories = new Set(allCharts.map((c) => c.parent)).size;
+        totalCount.textContent = `${categories} categories`;
+      }
+
+      // Render charts
+      function renderCharts() {
+        const chartList = document.getElementById("chartList");
+        const query = document.getElementById("searchInput").value;
+
+        if (filteredCharts.length === 0) {
+          chartList.innerHTML = `
+                    <div class="no-results">
+                        <div class="no-results-icon">🔍</div>
+                        <p>No charts found matching "${query}"</p>
+                        <p style="margin-top: 10px;">Try a different search term</p>
+                    </div>
+                `;
+          return;
+        }
+
+        chartList.innerHTML = filteredCharts
+          .map(
+            (chart) => `
+                 <div class="chart-item" onclick="window.open('${
+                   chart.chart_url
+                 }', '_blank')">
+                     <div>
+                         <span class="chart-parent">${chart.parent}</span>
+                     </div>
+                     <div class="chart-title">${highlightText(
+                       chart.chart_name,
+                       query
+                     )}</div>
+                     <div class="chart-url">${chart.chart_url}</div>
+                 </div>
+             `
+          )
+          .join("");
+      }
+
+      // Event listeners
+      document.getElementById("searchInput").addEventListener("input", (e) => {
+        searchCharts(e.target.value);
+      });
+
+      // Initialize
+      loadCharts();
+    </script>
+  </body>
+</html>
